@@ -1,0 +1,1 @@
+A secure authentication API built with DRF, providing user registration, login, and JWT-based authentication.
