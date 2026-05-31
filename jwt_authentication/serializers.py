@@ -34,5 +34,9 @@ class LoginSerializer(serializers.Serializer):
 
         data['user'] = user
         return data
+    
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+
 
 
