@@ -10,12 +10,22 @@ from rest_framework  import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
+from .models import EmailVerificationToken
+
 
 User = get_user_model()
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+
+        EmailVerificationToken.objects.create(user=user)
+
+
+
 
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
