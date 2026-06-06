@@ -11,6 +11,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
 from .models import EmailVerificationToken
+from .emails import send_verification_email
+from rest_framework.permissions import AllowAny
 
 
 User = get_user_model()
@@ -22,8 +24,9 @@ class RegisterView(generics.CreateAPIView):
     def perform_create(self, serializer):
         user = serializer.save()
 
-        EmailVerificationToken.objects.create(user=user)
+        verification_token_object = EmailVerificationToken.objects.create(user=user)
 
+        send_verification_email(user, verification_token_object.token)
 
 
 
@@ -58,3 +61,35 @@ class LogoutView(APIView):
                 {"error": "Invalid or expired token"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+class VerifyEmailView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, token):
+
+        try:
+            token_obj = EmailVerificationToken.objects.get(token=token)
+
+        except EmailVerificationToken.DoesNotExist:
+            return Response(
+                {"error": "Invalid verification token"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if token_obj.is_expired():
+            token_obj.delete()
+            return Response(
+                {"error": "Token expired"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = token_obj.user
+        user.is_verified = True
+        user.save(update_fields=["is_verified"])
+
+        token_obj.delete()
+
+        return Response(
+            {"message": "Email verified successfully"},
+            status=status.HTTP_200_OK
+        )
