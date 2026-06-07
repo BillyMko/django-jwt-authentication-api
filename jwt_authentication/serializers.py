@@ -28,10 +28,11 @@ class LoginSerializer(serializers.Serializer):
             email = data['email'],
             password=data['password']
         )
-
         if not user:
             raise serializers.ValidationError("Invalid credentials")
 
+        if not user.is_verified:
+            raise serializers.ValidationError("Please verify your email first.")
         data['user'] = user
         return data
     
