@@ -167,3 +167,40 @@ class PasswordResetConfirmView(APIView):
         },
         status=status.HTTP_200_OK
         )
+    
+class ResendVerificationView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email", "").lower()
+
+        if email == "":
+            return Response(
+                {"error":"Email is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        try:
+            user = User.objects.get(email=email)
+        
+        except User.DoesNotExist:
+            return Response(
+                {"message":"If this email exists and not verified, a new verification link has been sent."},
+                status=status.HTTP_200_OK
+            )
+        if user.is_verified:
+            return Response(
+                {"error":"Account already verified"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        EmailVerificationToken.objects.filter(user=user).delete()
+        
+        token_obj = EmailVerificationToken.objects.create(user=user)
+
+        send_verification_email(user, token_obj.token)
+
+        return Response(
+            {"message":"A new verification email has been sent."},
+            status=status.HTTP_200_OK
+        )
