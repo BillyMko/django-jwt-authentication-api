@@ -3,6 +3,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
 User = get_user_model()
 
+from django.contrib.auth.password_validation import validate_password
+
+from .models import PasswordResetToken
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6 )
@@ -39,5 +42,37 @@ class LoginSerializer(serializers.Serializer):
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
 
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
 
+    def validate_email(self, value):
+        return value.lower()
 
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    token = serializers.UUIDField()
+
+    new_password = serializers.CharField(write_only=True, validators=[validate_password])
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    token = serializers.UUIDField()
+    new_password = serializers.CharField(write_only=True, validators=[validate_password])
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+
+        if data["new_password"] != data["confirm_password"]:
+            raise serializers.ValidationError("Passwords do not match")
+        
+        try :
+            reset_token = PasswordResetToken.objects.get(token=data["token"])
+        
+        except PasswordResetToken.DoesNotExist:
+            raise serializers.ValidationError("Invalid reset token")
+        
+        if reset_token.is_valid() == False:
+            raise serializers.ValidationError("Token expired or already used")
+        
+        data["reset_token"] = reset_token
+
+        return data
+        

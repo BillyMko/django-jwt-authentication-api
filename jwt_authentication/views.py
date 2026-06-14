@@ -14,6 +14,15 @@ from .models import EmailVerificationToken
 from .emails import send_verification_email
 from rest_framework.permissions import AllowAny
 
+from .models import PasswordResetToken
+from .serializers import PasswordResetRequestSerializer
+
+from .serializers import PasswordResetConfirmSerializer
+
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
 
 User = get_user_model()
 
@@ -109,3 +118,52 @@ class LoginView(APIView):
             "access": str(refresh.access_token),
             "refresh": str(refresh)
         })
+
+class PasswordResetRequestView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data["email"]
+
+
+        try:
+            user = User.objects.get(email=email)
+            PasswordResetToken.objects.filter(user=user, used = False).delete()
+            reset_token = PasswordResetToken.objects.create(user=user)
+
+
+            logger.info(f"""RESET TOKEN: {reset_token.token}""")
+            
+        except User.DoesNotExist:
+            pass
+
+        return Response({"message":"If an account exists, a reset link has been sent to the email"}, status=status.HTTP_200_OK)
+    
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        reset_token = serializer.validated_data["reset_token"]
+        new_password = serializer.validated_data["new_password"]
+        user = reset_token.user
+
+        user.set_password(new_password)
+        user.save()
+
+        reset_token.used =  True
+        reset_token.save()
+
+        return Response ({
+            "message":
+            "Password reset successful."
+
+        },
+        status=status.HTTP_200_OK
+        )
