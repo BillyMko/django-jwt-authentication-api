@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .serializers import RegisterSerializer, LoginSerializer, RegisterSerializer, LogoutSerializer
+from .serializers import RegisterSerializer, LoginSerializer, RegisterSerializer, LogoutSerializer, PasswordResetConfirmSerializer, PasswordResetRequestSerializer, ProfileUpdateSerializer
 from django.contrib.auth import get_user_model
 from rest_framework import generics
 from rest_framework.views import APIView
@@ -15,9 +15,6 @@ from .emails import send_verification_email
 from rest_framework.permissions import AllowAny
 
 from .models import PasswordResetToken
-from .serializers import PasswordResetRequestSerializer
-
-from .serializers import PasswordResetConfirmSerializer
 
 import logging
 logger = logging.getLogger(__name__)
@@ -208,3 +205,25 @@ class ResendVerificationView(APIView):
             {"message":"A new verification email has been sent."},
             status=status.HTTP_200_OK
         )
+    
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        return Response({
+            "email": request.user.email,
+            "username": request.user.username,
+            "first_name": request.user.first_name, 
+            "last_name": request.user.last_name, 
+        })
+    
+    def patch(self, request):
+        serializer = ProfileUpdateSerializer(request.user, data=request.data, partial=True, context={"request":request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response({
+            "message": "Profile updated successfully",
+            "user": serializer.data
+        })

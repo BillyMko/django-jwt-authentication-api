@@ -34,8 +34,8 @@ class LoginSerializer(serializers.Serializer):
         if not user:
             raise serializers.ValidationError("Invalid credentials")
 
-        if not user.is_verified:
-            raise serializers.ValidationError("Please verify your email first.")
+        # if not user.is_verified:
+        #     raise serializers.ValidationError("Please verify your email first.")
         data['user'] = user
         return data
     
@@ -76,3 +76,20 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
         return data
         
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = User
+        fields = ["username",
+                  "first_name",
+                  "last_name"
+                ]
+    def validate_username(self, value):
+        user = self.context["request"].user
+
+        exists = (User.objects.filter(username=value).exclude(pk=user.pk).exists())
+        if exists:
+            raise serializers.ValidationError("Username already taken")
+        
+        return value
+    
