@@ -127,11 +127,19 @@ AUTH_USER_MODEL = 'jwt_authentication.User'
 
 from datetime import timedelta
 
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    
+        'DEFAULT_THROTTLE_RATES':{
+                                "login": "5/minute",
+                                "register": "3/minute",
+                                "password_reset": "3/hour",
+                              }
 }
+
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),

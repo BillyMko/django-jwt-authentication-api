@@ -23,12 +23,14 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+from .throttles import LoginRateThrottle, RegisterRateThrottle, PasswordResetRateThrottle
 
 User = get_user_model()
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
+    throttle_classes = [RegisterRateThrottle]
 
     def perform_create(self, serializer):
         user = serializer.save()
@@ -106,6 +108,7 @@ class VerifyEmailView(APIView):
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -121,6 +124,7 @@ class LoginView(APIView):
 
 class PasswordResetRequestView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [PasswordResetRateThrottle]
 
     def post(self, request):
         serializer = PasswordResetRequestSerializer(data=request.data)
