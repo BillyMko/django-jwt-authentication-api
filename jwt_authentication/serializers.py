@@ -98,3 +98,19 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         
         return value
     
+class AdminUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id", 
+            "email",
+            "first_name",
+            "last_name",
+            "role",
+            "is_verified",
+            "is_active",
+            "date_joined"
+        ]
+
+    
+    
