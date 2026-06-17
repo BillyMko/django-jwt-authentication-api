@@ -9,17 +9,22 @@ from .models import PasswordResetToken
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6 )
+    role = serializers.CharField(required=False)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password']
+        fields = ['id', 'username', 'email', 'password', 'role']
 
     def create(self,validated_data):
+        role = validated_data.pop("role", "user")
+        if role == "admin":
+            role = "user"
         user = User.objects.create_user(
             email = validated_data['email'],
             username=validated_data['username'], 
             password=validated_data['password']
             )
+       
         return user
     
 class LoginSerializer(serializers.Serializer):

@@ -13,6 +13,18 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
+    ROLE_CHOICES = [("admin", "Admin"), 
+                    ("user", "User"),
+                    ("premium", "Premium"),
+                    ]
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="user")
+
+    def is_admin(self):
+        return self.role == "admin"
+    
+    def is_premium(self):
+        return self.role in ("admin", "premium")    
+
     def __str__(self):
         return self.email
     
