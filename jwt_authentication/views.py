@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .serializers import RegisterSerializer, LoginSerializer, RegisterSerializer, LogoutSerializer, PasswordResetConfirmSerializer, PasswordResetRequestSerializer, ProfileUpdateSerializer
+from .serializers import RegisterSerializer, LoginSerializer, RegisterSerializer, LogoutSerializer, PasswordResetConfirmSerializer, PasswordResetRequestSerializer, ProfileUpdateSerializer, AdminUserSerializer
 from django.contrib.auth import get_user_model
 from rest_framework import generics
 from rest_framework.views import APIView
@@ -15,6 +15,8 @@ from .emails import send_verification_email
 from rest_framework.permissions import AllowAny
 
 from .models import PasswordResetToken
+
+from .permissions import IsAdmin, IsOwnerOrAdmin, IsPremium
 
 import logging
 logger = logging.getLogger(__name__)
@@ -227,3 +229,13 @@ class ProfileView(APIView):
             "message": "Profile updated successfully",
             "user": serializer.data
         })
+    
+class AdminUserListView(generics.ListAPIView):
+    permission_classes = [IsAdmin]
+    serializer_class = (AdminUserSerializer)
+    queryset = User.objects.all()
+
+class AdminUserDetailView(generics.RetrieveAPIView):
+    permission_classes = [IsAdmin]
+    serializer_class = (AdminUserSerializer)
+    queryset = User.objects.all()
