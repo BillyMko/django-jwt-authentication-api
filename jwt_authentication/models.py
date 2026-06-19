@@ -18,6 +18,17 @@ class User(AbstractUser):
                     ("premium", "Premium"),
                     ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="user")
+    bio = models.TextField(blank=True)
+    avator = models.URLField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+    
+    @property
+    def full_name(self):
+        return (f"{self.first_name} " f"{self.last_name}").strip()
 
     def is_admin(self):
         return self.role == "admin"
@@ -26,14 +37,15 @@ class User(AbstractUser):
         return self.role in ("admin", "premium")    
 
     def __str__(self):
-        return self.email
+        return (f"{self.email}" f"({self.role})")
+
     
 
 class EmailVerificationToken(models.Model):
 
     user = models.OneToOneField(User, 
                                 on_delete=models.CASCADE,
-                                related_name="email_verfication_token"
+                                related_name="email_verification_token"
                                 )
     token = models.UUIDField(
         default=uuid.uuid4,
@@ -55,7 +67,7 @@ class PasswordResetToken(models.Model):
 
     user = models.ForeignKey(User, 
                              on_delete=models.CASCADE,
-                            related_name="passoword_reset_tokens"
+                            related_name="password_reset_tokens"
                             )
     token = models.UUIDField(default=uuid.uuid4, 
                              unique=True, 
@@ -65,7 +77,8 @@ class PasswordResetToken(models.Model):
     used = models.BooleanField(default=False)
 
     def is_expired(self):
-        return (timezone.now() > self.created_at + timedelta(hours=2))
+        expiry = getattr(settings, "PASSWORD_RESET_EXPIRY_HOURS", 2)
+        return (timezone.now() > self.created_at + timedelta(hours=expiry))
     
     def is_valid(self):
 
