@@ -8,21 +8,49 @@ from django.contrib.auth.password_validation import validate_password
 from .models import PasswordResetToken
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, min_length=6 )
+    password = serializers.CharField(write_only=True, validators=[validate_password])
+    confirm_password = serializers.CharField(write_only=True)
     role = serializers.CharField(required=False)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'role']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'bio', 'password', 'confirm_password', 'role',]
+        extra_kwargs = {"first_name":{"required": True}, "last_name":{"required": True}}
+
+    def validate_email(self, value):
+        value = value.lower()
+
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with this email already exists")
+        
+        return value
+
+    def validate_username(self, value):
+
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("Username already taken.")
+        
+        return value
+
+    def validate(self, data):
+        if (data["password"] != data["confirm_password"]):
+            raise serializers.ValidationError({"password": "Passwords do not match"})
+        return data
 
     def create(self,validated_data):
+        validated_data.pop("confirm_password")
         role = validated_data.pop("role", "user")
         if role == "admin":
             role = "user"
         user = User.objects.create_user(
             email = validated_data['email'],
             username=validated_data['username'], 
-            password=validated_data['password']
+            password=validated_data['password'],
+            first_name=validated_data.get("first_name", ""),
+            last_name=validated_data.get("last_name", ""),
+            bio=validated_data.get("bio", ""),
+            role=role,
+            is_verified = False
             )
        
         return user
