@@ -87,10 +87,10 @@ class PasswordResetRequestSerializer(serializers.Serializer):
     def validate_email(self, value):
         return value.lower()
 
-class PasswordResetConfirmSerializer(serializers.Serializer):
-    token = serializers.UUIDField()
+# class PasswordResetConfirmSerializer(serializers.Serializer):
+#     token = serializers.UUIDField()
 
-    new_password = serializers.CharField(write_only=True, validators=[validate_password])
+#     new_password = serializers.CharField(write_only=True, validators=[validate_password])
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
     token = serializers.UUIDField()

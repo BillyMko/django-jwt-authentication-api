@@ -17,7 +17,8 @@ from rest_framework.permissions import AllowAny
 from .models import PasswordResetToken
 
 from .permissions import IsAdmin, IsOwnerOrAdmin, IsPremium
-
+ 
+from .passwordreset import send_password_reset_email
 import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -75,9 +76,10 @@ class LogoutView(APIView):
 class VerifyEmailView(APIView):
     permission_classes = [AllowAny]
 
-    def get(self, request, token):
+    def get(self, request):
 
         try:
+            token = request.query_params.get("token")
             token_obj = EmailVerificationToken.objects.get(token=token)
 
         except EmailVerificationToken.DoesNotExist:
@@ -140,8 +142,9 @@ class PasswordResetRequestView(APIView):
             PasswordResetToken.objects.filter(user=user, used = False).delete()
             reset_token = PasswordResetToken.objects.create(user=user)
 
+            send_password_reset_email(user, reset_token.token)
 
-            logger.info(f"""RESET TOKEN: {reset_token.token}""")
+            # logger.info(f"""RESET TOKEN: {reset_token.token}""")
             
         except User.DoesNotExist:
             pass
@@ -153,6 +156,8 @@ class PasswordResetConfirmView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+
+        token = request.query_params.get("token")
         serializer = PasswordResetConfirmSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
