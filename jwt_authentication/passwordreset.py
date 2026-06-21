@@ -3,7 +3,7 @@ from django.core.mail import send_mail
 
 def send_password_reset_email(user, token):
     reset_link = (f"{settings.FRONTEND_URL}"
-                        f"/reset-password/?token={token}"
+                        f"/password-reset/confirm/?token={token}"
                         )
     subject = "Reset your password"
     body = f"""

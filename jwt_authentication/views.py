@@ -156,9 +156,8 @@ class PasswordResetConfirmView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-
-        token = request.query_params.get("token")
-        serializer = PasswordResetConfirmSerializer(data=request.data)
+        
+        serializer = PasswordResetConfirmSerializer(data=request.data, context={"token":request.query_params.get("token")})
         serializer.is_valid(raise_exception=True)
 
         reset_token = serializer.validated_data["reset_token"]

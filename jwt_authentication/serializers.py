@@ -93,17 +93,21 @@ class PasswordResetRequestSerializer(serializers.Serializer):
 #     new_password = serializers.CharField(write_only=True, validators=[validate_password])
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
-    token = serializers.UUIDField()
+    # token = serializers.UUIDField()
     new_password = serializers.CharField(write_only=True, validators=[validate_password])
     confirm_password = serializers.CharField(write_only=True)
 
     def validate(self, data):
 
+        token = self.context.get("token")
+        if not token:
+            raise serializers.ValidationError("Token required")
+
         if data["new_password"] != data["confirm_password"]:
             raise serializers.ValidationError("Passwords do not match")
         
         try :
-            reset_token = PasswordResetToken.objects.get(token=data["token"])
+            reset_token = PasswordResetToken.objects.get(token=token)
         
         except PasswordResetToken.DoesNotExist:
             raise serializers.ValidationError("Invalid reset token")
