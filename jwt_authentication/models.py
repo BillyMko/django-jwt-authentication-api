@@ -34,7 +34,7 @@ class User(AbstractUser):
         return self.role == "admin"
     
     def is_premium(self):
-        return self.role in ("admin", "premium")    
+        return self.role == "premium"    
 
     def __str__(self):
         return (f"{self.email}" f"({self.role})")

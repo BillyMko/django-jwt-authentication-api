@@ -19,4 +19,7 @@ class IsOwnerOrAdmin(BasePermission):
         if request.user.role == "admin":
             return True
         
-        return obj.user == request.user 
+        if hasattr(obj, "user"):
+            return (obj.user == request.user)
+        
+        return obj == request.user 

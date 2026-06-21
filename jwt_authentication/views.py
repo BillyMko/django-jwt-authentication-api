@@ -1,5 +1,15 @@
 from django.shortcuts import render
-from .serializers import RegisterSerializer, LoginSerializer, RegisterSerializer, LogoutSerializer, PasswordResetConfirmSerializer, PasswordResetRequestSerializer, ProfileUpdateSerializer, AdminUserSerializer
+from .serializers import (
+                          RegisterSerializer, 
+                          LoginSerializer, 
+                          RegisterSerializer, 
+                          LogoutSerializer, 
+                          PasswordResetConfirmSerializer, 
+                          PasswordResetRequestSerializer, 
+                          ProfileUpdateSerializer, 
+                          AdminUserSerializer,
+                          UserProfileSerializer
+                          )
 from django.contrib.auth import get_user_model
 from rest_framework import generics
 from rest_framework.views import APIView
@@ -41,14 +51,15 @@ class RegisterView(generics.CreateAPIView):
 
 
 
-class ProfileView(APIView):
-    permission_classes = [IsAuthenticated]
+# class ProfileView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        return Response ({
-            'email':request.user.email,
-            'username': request.user.username
-        })
+#     def get(self, request):
+
+#         serializer = UserProfileSerializer(request.user)
+#         return Response ({
+#             serializer.data
+#         })
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -218,14 +229,22 @@ class ResendVerificationView(APIView):
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
+    # def get(self, request):
+    #     user = request.user
+    #     return Response({
+    #         "email": request.user.email,
+    #         "username": request.user.username,
+    #         "first_name": request.user.first_name, 
+    #         "last_name": request.user.last_name, 
+    #     })
+    
     def get(self, request):
-        user = request.user
-        return Response({
-            "email": request.user.email,
-            "username": request.user.username,
-            "first_name": request.user.first_name, 
-            "last_name": request.user.last_name, 
-        })
+
+        serializer = UserProfileSerializer(request.user)
+        return Response (
+            serializer.data
+        )
+
     
     def patch(self, request):
         serializer = ProfileUpdateSerializer(request.user, data=request.data, partial=True, context={"request":request})
@@ -238,6 +257,7 @@ class ProfileView(APIView):
         })
     
 class AdminUserListView(generics.ListAPIView):
+    
     permission_classes = [IsAdmin]
     serializer_class = (AdminUserSerializer)
     queryset = User.objects.all()

@@ -125,7 +125,9 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         model = User
         fields = ["username",
                   "first_name",
-                  "last_name"
+                  "last_name",
+                  "bio", 
+                  "avatar",
                 ]
     def validate_username(self, value):
         user = self.context["request"].user
@@ -151,4 +153,35 @@ class AdminUserSerializer(serializers.ModelSerializer):
         ]
 
     
-    
+class UserProfileSerializer(serializers.ModelSerializer):
+
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ["id",
+                    "username", 
+                    "email", 
+                    "first_name", 
+                    "last_name", 
+                    "full_name", 
+                    "role", 
+                    "is_verified", 
+                    "bio", 
+                    "avator",
+                    "created_at",
+                    "updated_at",
+                    ]
+        
+        read_only_fields = [
+            "id",
+            "email",
+            "role",
+            "is_verified",
+            "created_at",
+            "updated_at",
+        ]
+
+    def get_full_name(self, obj):
+        return (f"{obj.first_name} "
+                f"{obj.last_name}").strip()
