@@ -13,7 +13,7 @@ def send_password_reset_email(user, token):
     {reset_link}
 
     This link expires in 
-    {settings.EMAIL_VERIFICATION_EXPIRY_HOURS}
+    {settings.PASSWORD_RESET_EXPIRY_HOURS}
     hours.
     """.strip()
 

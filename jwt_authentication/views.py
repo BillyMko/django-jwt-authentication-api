@@ -47,19 +47,7 @@ class RegisterView(generics.CreateAPIView):
 
         verification_token_object = EmailVerificationToken.objects.create(user=user)
 
-        send_verification_email(user, verification_token_object.token)
-
-
-
-# class ProfileView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-
-#         serializer = UserProfileSerializer(request.user)
-#         return Response ({
-#             serializer.data
-#         })
+        send_verification_email(user, str(verification_token_object.token))
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -152,15 +140,13 @@ class PasswordResetRequestView(APIView):
             user = User.objects.get(email=email)
             PasswordResetToken.objects.filter(user=user, used = False).delete()
             reset_token = PasswordResetToken.objects.create(user=user)
-
             send_password_reset_email(user, reset_token.token)
-
-            # logger.info(f"""RESET TOKEN: {reset_token.token}""")
             
         except User.DoesNotExist:
             pass
 
-        return Response({"message":"If an account exists, a reset link has been sent to the email"}, status=status.HTTP_200_OK)
+        return Response({"message":"If an account exists, a reset link has been sent to the email"},
+                         status=status.HTTP_200_OK)
     
 
 class PasswordResetConfirmView(APIView):
@@ -219,7 +205,7 @@ class ResendVerificationView(APIView):
         
         token_obj = EmailVerificationToken.objects.create(user=user)
 
-        send_verification_email(user, token_obj.token)
+        send_verification_email(user, str(token_obj.token))
 
         return Response(
             {"message":"A new verification email has been sent."},
@@ -228,23 +214,12 @@ class ResendVerificationView(APIView):
     
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
-
-    # def get(self, request):
-    #     user = request.user
-    #     return Response({
-    #         "email": request.user.email,
-    #         "username": request.user.username,
-    #         "first_name": request.user.first_name, 
-    #         "last_name": request.user.last_name, 
-    #     })
     
     def get(self, request):
-
         serializer = UserProfileSerializer(request.user)
         return Response (
             serializer.data
         )
-
     
     def patch(self, request):
         serializer = ProfileUpdateSerializer(request.user, data=request.data, partial=True, context={"request":request})
