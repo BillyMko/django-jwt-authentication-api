@@ -4,16 +4,16 @@
 
 This project is a secure authentication API built using Django, Django REST Framework, and JWT authentication.
 
-The API allows users to:
+## Features
 
-- Register accounts
+- User registration
+- Email verification
 - Log in using email and password
-- Receive JWT access and refresh tokens
-- Access protected route
+- JWT login (access + refresh)
+- Password reset via email
+- Role-based permissions (admin, user, premium)
 
-This project was built to practice backend authentication, API security, token-based authentication, and deployment preparation on render.
-
-## Technologies Used
+## Tech Stack
 
 - Python
 - Django
@@ -22,87 +22,49 @@ This project was built to practice backend authentication, API security, token-b
 - SQLite3
 - python-dotenv
 
-## Authentication Flow
-
-1. User registers using email, username, and password.
-2. User logs in and receives:
-   - Access token
-   - Refresh token
-3. Access token is used to access protected endpoint.
-4. When access token expires, refresh token can be used to generate a new access token.
 
 ## API Endpoints
 
-### Register User
+### Authentication
 
-POST `/api/register/`
-
-Request Body:
-
-```json
-{
-  "username": "sarah",
-  "email": "sarah@gmail.com",
-  "password": "sarah123"
-}
-
-```
-
-Response:
-
-```json
-{
-  "id": 1,
-  "username": "sarah",
-  "email": "sarah@gmail.com"
-}
-
-```
----
-### Login
-
-POST `/api/login/`
-
-Request Body:
-
-```json
-{
-  "email": "sarah@gmail.com",
-  "password": "sarah123"
-}
-
-```
-
-Response:
-
-```json
-{
-  "refresh": "refresh_token_here",
-  "access": "access_token_here"
-}
-
-```
+- POST /api/register/
+- POST /api/login/
+- POST /api/logout/
+- POST /api/token/refresh/
 ---
 
-### Profile Endpoint
+### Email Verification
 
-GET `/api/profile/`
+- GET /api/verify-email/
 
-Headers:
+---
 
-```text
-Authorization: Bearer access_token_here
+### Profile
 
-```
-Response:
+- GET /api/profile/
+- PATCH /api/testprofile/
 
-```json
-{
-  "id": 1,
-  "username": "sarah",
-  "email": "sarah@gmail.com"
-}
-```
+---
+
+### Password Reset
+
+- POST /api/password-reset/request/
+- POST /api/password-reset/confirm/
+
+---
+
+### Admin
+
+- GET  /api/admin/users/
+- PATCH  /api/admin/users/<id>/
+
+---
+
+## Project Notes
+
+- Uses JWT authentication
+- Email system currently supports logging mode
+- Token blacklisting enabled for logout security
 ## To run Locally
 git clone https://github.com/BillyMko/django-jwt-authentication-api.git
 
@@ -116,7 +78,13 @@ source myenv/bin/activate
 
 pip install -r requirements.txt
 
+## Create superuser
+
+python manage.py createsuperuser
+
 ## Run migrations and Start Development Server
+
+python manage.py makemigrations
 
 python manage.py migrate
 
