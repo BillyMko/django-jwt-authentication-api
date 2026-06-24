@@ -260,8 +260,35 @@ class AdminUserListView(generics.ListAPIView):
     
     permission_classes = [IsAdmin]
     serializer_class = (AdminUserSerializer)
-    queryset = User.objects.all()
 
+    def get_queryset(self):
+        queryset = User.objects.all()
+        role = self.request.query_params.get("role")
+        is_verified = self.request.query_params.get("is_verified")
+        search = self.request.query_params.get("search")
+
+        if role:
+            queryset = queryset.filter(role=role)
+        
+        if is_verified is not None:
+            queryset = queryset.filter(is_verified=(is_verified.lower() == "true"))
+
+        if search:
+            from django.db.models import Q
+
+            queryset = queryset.filter(
+
+                    Q(email__icontains=search)
+                    | 
+                    Q(username__icontains=search)
+                    | 
+                    Q(first_name__icontains=search)
+                    | 
+                    Q(last_name__icontains=search)
+            )
+            
+        return queryset
+            
 class AdminUserDetailView(generics.RetrieveAPIView):
     permission_classes = [IsAdmin]
     serializer_class = (AdminUserSerializer)
