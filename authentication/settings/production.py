@@ -1,4 +1,3 @@
 from .base import *
 import os 
-
-DEBUG = False
+DEBUG = os.getenv("DEBUG") =="True"
